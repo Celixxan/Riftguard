@@ -25,8 +25,8 @@ export function SettingsPanel({ showDevSeed }: { showDevSeed?: boolean }) {
           <Switch
             value={settings[t.key]}
             onValueChange={v => setSetting(t.key, v)}
-            trackColor={{ false: '#1e293b', true: C.cyanDim }}
-            thumbColor={settings[t.key] ? C.cyan : '#64748b'}
+            trackColor={{ false: '#3b4638', true: C.cyanDim }}
+            thumbColor={settings[t.key] ? C.yellow : '#8f927d'}
           />
         </View>
       ))}
@@ -36,8 +36,8 @@ export function SettingsPanel({ showDevSeed }: { showDevSeed?: boolean }) {
           <Switch
             value={settings.showDiagnostics}
             onValueChange={v => setSetting('showDiagnostics', v)}
-            trackColor={{ false: '#1e293b', true: C.cyanDim }}
-            thumbColor={settings.showDiagnostics ? C.cyan : '#64748b'}
+            trackColor={{ false: '#3b4638', true: C.cyanDim }}
+            thumbColor={settings.showDiagnostics ? C.yellow : '#8f927d'}
           />
         </View>
       )}
@@ -62,9 +62,9 @@ const styles = StyleSheet.create({
   panel: {
     width: '100%',
     backgroundColor: C.bgCard,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.border,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#75694b',
     padding: 14,
     gap: 4,
   },
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 4,
   },
-  label: { color: C.text, fontSize: 14, fontWeight: '600' },
+  label: { color: C.parchment, fontSize: 14, fontWeight: '700' },
   seedRow: { marginTop: 8, gap: 6 },
   seedInput: {
     borderWidth: 1,

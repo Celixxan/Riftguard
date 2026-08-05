@@ -26,7 +26,7 @@ export function BottomBar({ battle, dragCell }: Props) {
       {dragUnit ? (
         <View style={styles.preview}>
           <Text style={styles.previewTitle}>
-            {stabilized ? 'STABILIZED — result is guaranteed:' : 'Merge result chances:'}
+            {stabilized ? 'FATE BOUND — the same Warden is guaranteed:' : 'Possible merge outcomes:'}
           </Text>
           <View style={styles.previewRow}>
             {b.opts.loadout.map(t => {
@@ -39,14 +39,14 @@ export function BottomBar({ battle, dragCell }: Props) {
                 </View>
               );
             })}
-            <Text style={styles.previewRank}>→ Rank {Math.min(5, dragUnit.rank + 1)}</Text>
+            <Text style={styles.previewRank}>→ Tier {Math.min(5, dragUnit.rank + 1)}</Text>
           </View>
         </View>
       ) : (
         <View style={styles.row}>
           <View style={styles.energyBox}>
             <Text style={styles.energyValue}>{Math.floor(b.energy)}</Text>
-            <Text style={styles.energyLabel}>ENERGY</Text>
+            <Text style={styles.energyLabel}>MANA</Text>
           </View>
 
           <Pressable
@@ -60,9 +60,9 @@ export function BottomBar({ battle, dragCell }: Props) {
               !canSummon && styles.summonDisabled,
               pressed && canSummon && { opacity: 0.85 },
             ]}>
-            <Text style={styles.summonText}>{boardFull ? 'BOARD FULL' : 'SUMMON'}</Text>
+            <Text style={styles.summonText}>{boardFull ? 'CLEAR A PAD' : 'CALL WARDEN'}</Text>
             <Text style={styles.summonCost}>
-              {boardFull ? 'merge to make room' : free ? 'FREE' : `${cost} energy`}
+              {boardFull ? 'merge matching Wardens' : free ? 'FREE CALL' : `${cost} mana`}
             </Text>
           </Pressable>
 
@@ -77,9 +77,9 @@ export function BottomBar({ battle, dragCell }: Props) {
               b.stabCharges === 0 && { opacity: 0.4 },
               stabilized && styles.stabActive,
             ]}>
-            <Text style={[styles.stabText, stabilized && { color: C.bg }]}>STABILIZE</Text>
+            <Text style={[styles.stabText, stabilized && { color: '#2b2117' }]}>BIND FATE</Text>
             <Text style={[styles.stabCharges, stabilized && { color: C.bg }]}>
-              {b.stabCharges} charge{b.stabCharges === 1 ? '' : 's'}
+              {b.stabCharges} token{b.stabCharges === 1 ? '' : 's'}
             </Text>
           </Pressable>
         </View>
@@ -89,49 +89,59 @@ export function BottomBar({ battle, dragCell }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { paddingHorizontal: 12, paddingVertical: 8, minHeight: 84, justifyContent: 'center' },
+  wrap: {
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    minHeight: 86,
+    justifyContent: 'center',
+    backgroundColor: '#172419',
+    borderTopWidth: 2,
+    borderTopColor: '#6e6044',
+  },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   energyBox: {
     width: 74,
     height: 64,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: C.borderBright,
-    backgroundColor: C.bgPanel,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#887755',
+    backgroundColor: '#30402d',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  energyValue: { color: C.energy, fontSize: 20, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  energyLabel: { color: C.textFaint, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
+  energyValue: { color: '#a9d2d7', fontSize: 20, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  energyLabel: { color: C.textDim, fontSize: 8, fontWeight: '900', letterSpacing: 1.5 },
   summonBtn: {
     flex: 1,
     height: 64,
-    borderRadius: 14,
-    backgroundColor: C.cyan,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#f0d477',
+    backgroundColor: C.yellow,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  summonDisabled: { backgroundColor: '#164e63' },
-  summonText: { color: '#03131a', fontSize: 18, fontWeight: '900', letterSpacing: 2 },
-  summonCost: { color: '#075985', fontSize: 12, fontWeight: '700' },
+  summonDisabled: { backgroundColor: '#596044', borderColor: '#73775e' },
+  summonText: { color: '#302417', fontSize: 16, fontWeight: '900', letterSpacing: 1.4 },
+  summonCost: { color: '#694a27', fontSize: 11, fontWeight: '800' },
   stabBtn: {
     width: 92,
     height: 64,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    borderRadius: 14,
+    borderWidth: 2,
     borderColor: C.violet,
-    backgroundColor: C.bgPanel,
+    backgroundColor: '#30402d',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stabActive: { backgroundColor: C.violet },
+  stabActive: { backgroundColor: C.yellow, borderColor: '#f0d477' },
   stabText: { color: C.violet, fontSize: 12, fontWeight: '900', letterSpacing: 1 },
-  stabCharges: { color: C.textDim, fontSize: 10, fontWeight: '700', marginTop: 2 },
+  stabCharges: { color: C.textDim, fontSize: 9, fontWeight: '700', marginTop: 2 },
   preview: {
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
+    borderWidth: 2,
     borderColor: C.yellow,
-    backgroundColor: '#fde04710',
+    backgroundColor: '#3b3826',
     padding: 8,
   },
   previewTitle: { color: C.yellow, fontSize: 11, fontWeight: '800', marginBottom: 4 },

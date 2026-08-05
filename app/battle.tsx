@@ -76,7 +76,7 @@ export default function BattleScreen() {
     }
   }, [b, b?.phase, stage]);
 
-  const hudHeight = 76;
+  const hudHeight = 88;
   const barHeight = 92;
   const availH = height - insets.top - insets.bottom - hudHeight - barHeight - 8;
   const fieldPx = Math.min(width - 12, availH / FIELD.height);

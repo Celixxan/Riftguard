@@ -32,7 +32,7 @@ export function ResultOverlay({ battle, rewards, onRetry, onExit }: Props) {
   return (
     <View style={styles.overlay}>
       <Text style={[styles.title, { color: won ? C.cyan : C.crimson }]}>
-        {won ? 'RIFT SEALED' : 'CORE LOST'}
+        {won ? 'TRAIL SECURED' : 'HEARTSTONE FALLEN'}
       </Text>
       {won && (
         <View style={styles.stars}>
@@ -45,15 +45,15 @@ export function ResultOverlay({ battle, rewards, onRetry, onExit }: Props) {
       )}
       <View style={styles.panel}>
         <Row label="Time" value={`${b.result.timeUsed}s`} />
-        <Row label="Core remaining" value={`${b.result.coreLeft}%`} />
-        <Row label="Enemies defeated" value={`${b.kills}`} />
+        <Row label="Heartstone remaining" value={`${b.result.coreLeft}%`} />
+        <Row label="Creatures defeated" value={`${b.kills}`} />
         <Row label="Merges" value={`${b.mergeCount}`} />
         {rewards && won && (
           <>
             <View style={styles.divider} />
-            <Row label="Credits earned" value={`+${rewards.credits}`} accent={C.yellow} />
-            <Row label="Guardian Data" value={`+${rewards.data}`} accent={C.cyan} />
-            {rewards.firstClear && <Text style={styles.firstClear}>FIRST CLEAR BONUS</Text>}
+            <Row label="Gold earned" value={`+${rewards.credits}`} accent={C.yellow} />
+            <Row label="Warden essence" value={`+${rewards.data}`} accent={C.cyan} />
+            {rewards.firstClear && <Text style={styles.firstClear}>FIRST JOURNEY REWARD</Text>}
           </>
         )}
       </View>
@@ -67,8 +67,8 @@ export function ResultOverlay({ battle, rewards, onRetry, onExit }: Props) {
         </View>
       )}
       <View style={styles.buttons}>
-        <NeonButton label={won ? 'BATTLE AGAIN' : 'RETRY'} onPress={onRetry} />
-        <NeonButton label="RETURN TO HUB" color={C.textDim} onPress={onExit} />
+        <NeonButton label={won ? 'WALK THE TRAIL AGAIN' : 'TRY THE TRAIL AGAIN'} onPress={onRetry} />
+        <NeonButton label="RETURN TO THE LODGE" color={C.parchmentDark} onPress={onExit} />
       </View>
     </View>
   );
@@ -86,31 +86,31 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#05070df5',
+    backgroundColor: '#0b140df5',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
     zIndex: 70,
   },
-  title: { fontSize: 30, fontWeight: '900', letterSpacing: 6 },
+  title: { fontSize: 27, fontWeight: '900', letterSpacing: 3.5, textAlign: 'center' },
   stars: { flexDirection: 'row', gap: 8, marginTop: 8 },
   star: { fontSize: 34 },
   panel: {
     width: '100%',
     maxWidth: 340,
-    backgroundColor: C.bgCard,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.border,
+    backgroundColor: C.parchment,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#8b6a3f',
     padding: 16,
     marginTop: 18,
     gap: 8,
   },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
-  rowLabel: { color: C.textDim, fontSize: 14 },
-  rowValue: { color: C.text, fontSize: 14, fontWeight: '800' },
-  divider: { height: 1, backgroundColor: C.border, marginVertical: 4 },
-  firstClear: { color: C.orange, fontSize: 11, fontWeight: '900', letterSpacing: 2, textAlign: 'center', marginTop: 4 },
+  rowLabel: { color: '#6a573d', fontSize: 14 },
+  rowValue: { color: '#302417', fontSize: 14, fontWeight: '900' },
+  divider: { height: 1, backgroundColor: '#bba77c', marginVertical: 4 },
+  firstClear: { color: '#995523', fontSize: 11, fontWeight: '900', letterSpacing: 2, textAlign: 'center', marginTop: 4 },
   takenWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12, maxWidth: 340, justifyContent: 'center' },
   taken: { fontSize: 11, fontWeight: '700' },
   buttons: { width: '100%', maxWidth: 340, gap: 10, marginTop: 20 },

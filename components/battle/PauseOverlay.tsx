@@ -15,11 +15,12 @@ export function PauseOverlay({ battle, onQuit }: Props) {
   return (
     <View style={styles.overlay}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>PAUSED</Text>
+        <Text style={styles.kicker}>THE FOREST WAITS</Text>
+        <Text style={styles.title}>TRAIL PAUSED</Text>
         <View style={styles.inner}>
           <SettingsPanel />
-          <NeonButton label="RESUME" onPress={() => togglePause(battle)} />
-          <NeonButton label="ABANDON BATTLE" color={C.crimson} onPress={onQuit} />
+          <NeonButton label="RETURN TO THE TRAIL" onPress={() => togglePause(battle)} />
+          <NeonButton label="LEAVE THIS JOURNEY" color={C.crimson} onPress={onQuit} />
         </View>
       </ScrollView>
     </View>
@@ -29,10 +30,11 @@ export function PauseOverlay({ battle, onQuit }: Props) {
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#05070df2',
+    backgroundColor: '#0d160ff2',
     zIndex: 60,
   },
   scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  title: { color: C.text, fontSize: 26, fontWeight: '900', letterSpacing: 8, marginBottom: 18 },
+  kicker: { color: C.parchmentDark, fontSize: 10, fontWeight: '900', letterSpacing: 3, marginBottom: 5 },
+  title: { color: C.parchment, fontSize: 25, fontWeight: '900', letterSpacing: 4, marginBottom: 18 },
   inner: { width: '100%', maxWidth: 360, gap: 12 },
 });

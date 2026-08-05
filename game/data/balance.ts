@@ -44,26 +44,79 @@ export const BALANCE = {
 export const FIELD = {
   width: 1,
   height: 1.5,
-  portalY: 0.06,
-  portalXs: [0.2, 0.5, 0.8],
-  coreX: 0.5,
-  coreY: 1.4,
-  gridX0: 0.2,
-  gridDX: 0.2,
-  gridY0: 0.62,
-  gridDY: 0.185,
+  portalY: 0.035,
+  portalXs: [0.5, 0.52, 0.54],
+  coreX: 0.52,
+  coreY: 1.43,
+  gridX0: 0,
+  gridDX: 0.18,
+  gridY0: 0,
+  gridDY: 0,
+  pathPoints: [
+    { x: 0.52, y: 0.035 },
+    { x: 0.32, y: 0.16 },
+    { x: 0.22, y: 0.34 },
+    { x: 0.72, y: 0.51 },
+    { x: 0.78, y: 0.72 },
+    { x: 0.3, y: 0.88 },
+    { x: 0.24, y: 1.08 },
+    { x: 0.7, y: 1.22 },
+    { x: 0.52, y: 1.43 },
+  ],
+  buildPads: [
+    { x: 0.13, y: 0.11 },
+    { x: 0.81, y: 0.12 },
+    { x: 0.56, y: 0.25 },
+    { x: 0.88, y: 0.34 },
+    { x: 0.1, y: 0.49 },
+    { x: 0.4, y: 0.55 },
+    { x: 0.91, y: 0.59 },
+    { x: 0.11, y: 0.69 },
+    { x: 0.48, y: 0.72 },
+    { x: 0.9, y: 0.83 },
+    { x: 0.09, y: 0.92 },
+    { x: 0.56, y: 0.96 },
+    { x: 0.87, y: 1.06 },
+    { x: 0.11, y: 1.14 },
+    { x: 0.43, y: 1.2 },
+    { x: 0.86, y: 1.28 },
+  ],
 };
 
 export function cellCenter(cell: number): { x: number; y: number } {
-  const col = cell % BALANCE.gridCols;
-  const row = Math.floor(cell / BALANCE.gridCols);
-  return { x: FIELD.gridX0 + col * FIELD.gridDX, y: FIELD.gridY0 + row * FIELD.gridDY };
+  return FIELD.buildPads[cell] ?? FIELD.buildPads[0];
 }
 
 export function lanePos(lane: number, t: number): { x: number; y: number } {
-  const px = FIELD.portalXs[lane];
+  const clamped = Math.max(0, Math.min(1, t));
+  const points = FIELD.pathPoints;
+  const lengths: number[] = [];
+  let total = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const len = Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y);
+    lengths.push(len);
+    total += len;
+  }
+
+  let distance = clamped * total;
+  let segment = 0;
+  while (segment < lengths.length - 1 && distance > lengths[segment]) {
+    distance -= lengths[segment];
+    segment++;
+  }
+
+  const a = points[segment];
+  const b = points[segment + 1];
+  const segT = lengths[segment] > 0 ? distance / lengths[segment] : 0;
+  const baseX = a.x + (b.x - a.x) * segT;
+  const baseY = a.y + (b.y - a.y) * segT;
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const mag = Math.hypot(dx, dy) || 1;
+  const laneOffset = (lane - 1) * 0.018;
+
   return {
-    x: px + (FIELD.coreX - px) * t,
-    y: FIELD.portalY + (FIELD.coreY - FIELD.portalY) * t,
+    x: baseX + (-dy / mag) * laneOffset,
+    y: baseY + (dx / mag) * laneOffset,
   };
 }

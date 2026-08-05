@@ -37,12 +37,12 @@ export default function LoadoutScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10} style={styles.back}>
           <ArrowLeft color={C.text} size={22} />
         </Pressable>
-        <Text style={styles.title}>LOADOUT</Text>
+        <Text style={styles.title}>WAR BAND</Text>
         <View style={{ width: 40 }} />
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.hint}>
-          These four Guardians enter every battle. Tap two slots to swap their summon order.
+          These four Wardens walk every trail with you. Tap two crests to change their calling order.
         </Text>
         <View style={styles.slots}>
           {loadout.map((type, i) => {
@@ -53,7 +53,7 @@ export default function LoadoutScreen() {
                 key={i}
                 onPress={() => swap(i)}
                 style={[styles.slot, { borderColor: isSel ? C.yellow : def.color + '66' }, isSel && styles.slotSel]}>
-                <Text style={styles.slotNum}>SLOT {i + 1}</Text>
+                <Text style={styles.slotNum}>CREST {i + 1}</Text>
                 <GuardianSprite type={type} size={56} rank={0} />
                 <Text style={[styles.slotName, { color: def.color }]}>{def.name}</Text>
                 <Text style={styles.slotLevel}>Lv {levels[type]}</Text>
@@ -75,7 +75,7 @@ export default function LoadoutScreen() {
                 </View>
                 <Text style={styles.detailDesc}>{def.desc}</Text>
                 <Text style={styles.detailUlt}>
-                  ULT — {def.ultName}: {def.ultDesc}
+                  GIFT — {def.ultName}: {def.ultDesc}
                 </Text>
               </View>
             );
