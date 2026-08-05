@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Polyline } from 'react-native-svg';
 import { BattleState, setPriorityTarget, tryMerge, validMergeTargets } from '@/game/sim/battle';
 import { cellCenter, FIELD } from '@/game/data/balance';
 import { ENEMIES } from '@/game/data/enemies';
@@ -26,6 +26,19 @@ interface DragState {
   dy: number;
 }
 
+const FIELD_ART = require('../../assets/images/battlefield-forest-v1.png');
+const PATH_POINTS = FIELD.pathPoints.map(point => `${point.x * 1000},${point.y * 1000}`).join(' ');
+
+const PATH_DETAILS = [
+  { x: 0.38, y: 0.2, size: 5 },
+  { x: 0.3, y: 0.37, size: 4 },
+  { x: 0.63, y: 0.49, size: 5 },
+  { x: 0.72, y: 0.68, size: 4 },
+  { x: 0.41, y: 0.84, size: 5 },
+  { x: 0.27, y: 1.04, size: 4 },
+  { x: 0.58, y: 1.2, size: 5 },
+];
+
 export function FieldView({ battle, px, reduceMotion, damageNumbers, colorblind, onDragChange }: Props) {
   const b = battle;
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -37,45 +50,42 @@ export function FieldView({ battle, px, reduceMotion, damageNumbers, colorblind,
   }, [onDragChange]);
 
   const cellPx = FIELD.gridDX * px;
-  const unitPx = cellPx * 0.72;
+  const unitPx = cellPx * 0.8;
 
   const gestures = useMemo(() => {
-    const setDragBoth = (d: DragState | null) => {
-      dragRef.current = d;
-      setDrag(d);
-      onDragChangeRef.current(d ? d.cell : null);
+    const setDragBoth = (next: DragState | null) => {
+      dragRef.current = next;
+      setDrag(next);
+      onDragChangeRef.current(next ? next.cell : null);
     };
     const interactive = () => b.phase === 'playing' || b.phase === 'tutorial';
     return Array.from({ length: 16 }, (_, i) => {
-      const c = cellCenter(i);
+      const center = cellCenter(i);
       return Gesture.Pan()
         .runOnJS(true)
-        .onUpdate(ev => {
+        .onUpdate(event => {
           if (!interactive() || !b.grid[i]) return;
-          setDragBoth({ cell: i, dx: ev.translationX, dy: ev.translationY });
+          setDragBoth({ cell: i, dx: event.translationX, dy: event.translationY });
         })
-        .onEnd(ev => {
-          const d = dragRef.current;
+        .onEnd(event => {
+          const current = dragRef.current;
           setDragBoth(null);
-          if (!d || d.cell !== i || !interactive()) return;
-          const fx = c.x + ev.translationX / px;
-          const fy = c.y + ev.translationY / px;
+          if (!current || current.cell !== i || !interactive()) return;
+          const finalX = center.x + event.translationX / px;
+          const finalY = center.y + event.translationY / px;
           let target = -1;
-          let bestDist = 0.11;
+          let bestDistance = 0.12;
           for (let j = 0; j < 16; j++) {
             if (j === i) continue;
-            const cc = cellCenter(j);
-            const dist = Math.hypot(cc.x - fx, cc.y - fy);
-            if (dist < bestDist) {
-              bestDist = dist;
+            const candidate = cellCenter(j);
+            const distance = Math.hypot(candidate.x - finalX, candidate.y - finalY);
+            if (distance < bestDistance) {
+              bestDistance = distance;
               target = j;
             }
           }
-          if (target >= 0 && tryMerge(b, i, target)) {
-            hapticMedium();
-          } else if (target >= 0) {
-            hapticError();
-          }
+          if (target >= 0 && tryMerge(b, i, target)) hapticMedium();
+          else if (target >= 0) hapticError();
         })
         .onFinalize(() => {
           if (dragRef.current) setDragBoth(null);
@@ -88,246 +98,318 @@ export function FieldView({ battle, px, reduceMotion, damageNumbers, colorblind,
     [drag, b]
   );
 
-  const boardFull = b.grid.every(u => u !== null);
-
-  const shakeX = !reduceMotion && b.shake > 0 ? (Math.random() - 0.5) * b.shake * 14 : 0;
-  const shakeY = !reduceMotion && b.shake > 0 ? (Math.random() - 0.5) * b.shake * 14 : 0;
+  const boardFull = b.grid.every(unit => unit !== null);
+  const shakeX = !reduceMotion && b.shake > 0 ? (Math.random() - 0.5) * b.shake * 12 : 0;
+  const shakeY = !reduceMotion && b.shake > 0 ? (Math.random() - 0.5) * b.shake * 12 : 0;
 
   return (
     <View
       style={[
         styles.field,
-        { width: px, height: px * FIELD.height, transform: [{ translateX: shakeX }, { translateY: shakeY }] },
+        {
+          width: px,
+          height: px * FIELD.height,
+          transform: [{ translateX: shakeX }, { translateY: shakeY }],
+        },
       ]}>
-      <LinearGradient
-        colors={['#0a0d1a', '#0b101c', '#0d1220']}
+      <ImageBackground source={FIELD_ART} resizeMode="cover" style={StyleSheet.absoluteFill} />
+      <View style={styles.environmentWash} pointerEvents="none" />
+
+      <Svg
+        width={px}
+        height={px * FIELD.height}
+        viewBox="0 0 1000 1500"
         style={StyleSheet.absoluteFill}
-      />
-      {[0.25, 0.55, 0.85].map((y, i) => (
+        pointerEvents="none">
+        <Polyline
+          points={PATH_POINTS}
+          fill="none"
+          stroke="#443426"
+          strokeWidth={142}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.82}
+        />
+        <Polyline
+          points={PATH_POINTS}
+          fill="none"
+          stroke={C.road}
+          strokeWidth={116}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.96}
+        />
+        <Polyline
+          points={PATH_POINTS}
+          fill="none"
+          stroke={C.roadLight}
+          strokeWidth={78}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.52}
+        />
+        <Polyline
+          points={PATH_POINTS}
+          fill="none"
+          stroke="#ead3a1"
+          strokeWidth={5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeDasharray="10 26"
+          opacity={0.32}
+        />
+      </Svg>
+
+      {PATH_DETAILS.map((detail, index) => (
         <View
-          key={i}
+          key={`detail-${index}`}
+          pointerEvents="none"
           style={[
-            styles.crack,
+            styles.pathStone,
             {
-              top: y * px * FIELD.height,
-              left: (0.1 + i * 0.25) * px,
-              width: px * 0.35,
-              transform: [{ rotate: `${-18 + i * 16}deg` }],
-              backgroundColor: i === 1 ? '#8b5cf6' : C.cyan,
-              opacity: 0.12,
+              left: detail.x * px - detail.size / 2,
+              top: detail.y * px - detail.size / 2,
+              width: detail.size,
+              height: detail.size * 0.7,
             },
           ]}
         />
       ))}
 
-      {FIELD.portalXs.map((x, i) => (
-        <View
-          key={i}
-          style={[
-            styles.portal,
-            {
-              left: x * px - cellPx * 0.32,
-              top: FIELD.portalY * px - 10,
-              width: cellPx * 0.64,
-              height: cellPx * 0.4,
-            },
-          ]}>
-          <View style={styles.portalInner} />
-        </View>
-      ))}
-
       <View
+        pointerEvents="none"
         style={[
-          styles.core,
+          styles.gate,
           {
-            left: FIELD.coreX * px - cellPx * 0.42,
-            top: FIELD.coreY * px - cellPx * 0.32,
-            width: cellPx * 0.84,
-            height: cellPx * 0.64,
-            borderColor: b.coreShield > 0 ? '#7dd3fc' : C.cyan,
+            left: FIELD.pathPoints[0].x * px - cellPx * 0.52,
+            top: 0,
+            width: cellPx * 1.04,
+            height: cellPx * 0.58,
           },
         ]}>
-        <View style={[styles.coreOrb, { backgroundColor: b.coreHp / b.coreMax > 0.35 ? C.cyan : C.crimson }]} />
-        {b.coreShield > 0 && <Text style={styles.coreShieldText}>{b.coreShield}</Text>}
+        <View style={styles.gateOpening} />
+        <View style={[styles.gatePillar, styles.gatePillarLeft]} />
+        <View style={[styles.gatePillar, styles.gatePillarRight]} />
+        <View style={styles.gateLintel} />
       </View>
 
-      {b.grid.map((u, i) => {
-        const c = cellCenter(i);
+      <View
+        pointerEvents="none"
+        style={[
+          styles.heartstone,
+          {
+            left: FIELD.coreX * px - cellPx * 0.58,
+            top: FIELD.coreY * px - cellPx * 0.46,
+            width: cellPx * 1.16,
+            height: cellPx * 0.78,
+            borderColor: b.coreShield > 0 ? '#a8d7d8' : C.parchmentDark,
+          },
+        ]}>
+        <View style={styles.shrineRoof} />
+        <View style={styles.shrineBody}>
+          <View
+            style={[
+              styles.heartGem,
+              { backgroundColor: b.coreHp / b.coreMax > 0.35 ? '#83b66d' : C.crimson },
+            ]}
+          />
+        </View>
+        {b.coreShield > 0 ? <Text style={styles.coreShieldText}>WARD {b.coreShield}</Text> : null}
+      </View>
+
+      {b.grid.map((unit, i) => {
+        const center = cellCenter(i);
         const highlight = drag !== null && validTargets.includes(i);
         return (
           <View
-            key={`cell${i}`}
+            key={`cell-${i}`}
+            pointerEvents="none"
             style={[
-              styles.cell,
+              styles.buildPad,
               {
-                left: c.x * px - cellPx * 0.46,
-                top: c.y * px - cellPx * 0.46,
-                width: cellPx * 0.92,
-                height: cellPx * 0.92,
-                borderColor: highlight ? C.yellow : boardFull && !u ? C.border : '#1a2438',
-                borderWidth: highlight ? 2 : 1,
-                backgroundColor: highlight ? '#fde04715' : '#0f172a55',
+                left: center.x * px - cellPx * 0.48,
+                top: center.y * px - cellPx * 0.48,
+                width: cellPx * 0.96,
+                height: cellPx * 0.96,
+                borderColor: highlight ? C.yellow : unit ? '#a79667' : '#81775c',
+                borderWidth: highlight ? 3 : 2,
+                backgroundColor: highlight ? '#e6c15a55' : unit ? '#394a31cc' : '#586044aa',
+                opacity: boardFull || unit || highlight ? 1 : 0.88,
               },
-            ]}
-          />
+            ]}>
+            <View style={[styles.padRune, highlight && { borderColor: C.yellow }]} />
+          </View>
         );
       })}
 
-      {b.enemies.map(e => {
-        const def = ENEMIES[e.type];
-        const s = def.size * px * 2;
+      {b.enemies.map(enemy => {
+        const definition = ENEMIES[enemy.type];
+        const size = definition.size * px * 2;
         return (
           <Pressable
-            key={e.id}
-            onPress={() => setPriorityTarget(b, e.id)}
+            key={enemy.id}
+            onPress={() => setPriorityTarget(b, enemy.id)}
             hitSlop={10}
             style={{
               position: 'absolute',
-              left: e.x * px - s / 2,
-              top: e.y * px - s / 2 - 6,
+              left: enemy.x * px - size / 2,
+              top: enemy.y * px - size / 2 - 6,
+              zIndex: 10,
             }}>
             <EnemySprite
-              enemy={e}
+              enemy={enemy}
               px={px}
-              frozen={b.time < e.frozenUntil}
-              slowed={b.time < e.slowUntil}
+              frozen={b.time < enemy.frozenUntil}
+              slowed={b.time < enemy.slowUntil}
               colorblind={colorblind}
             />
           </Pressable>
         );
       })}
 
-      {b.drones.map(d => (
+      {b.drones.map(drone => (
         <View
-          key={d.id}
+          key={drone.id}
           style={[
-            styles.drone,
+            styles.wisp,
             {
-              left: d.x * px - 7,
-              top: d.y * px - 7,
-              backgroundColor: d.enhanced ? '#fde047' : '#a3e635',
+              left: drone.x * px - 7,
+              top: drone.y * px - 7,
+              backgroundColor: drone.enhanced ? '#f0d57a' : '#a8c86d',
+              shadowColor: drone.enhanced ? '#f0d57a' : '#a8c86d',
             },
           ]}
         />
       ))}
 
-      {b.projectiles.map(p => {
+      {b.projectiles.map(projectile => {
         const color =
-          p.from === 'arc' ? C.cyan : p.from === 'nova' ? C.orange : p.from === 'cryo' ? C.blue : '#a3e635';
-        const size = p.from === 'nova' ? 10 : 6;
+          projectile.from === 'arc'
+            ? '#b4d477'
+            : projectile.from === 'nova'
+              ? '#e28a43'
+              : projectile.from === 'cryo'
+                ? '#b9e2e6'
+                : '#a8c86d';
+        const size = projectile.from === 'nova' ? 10 : 6;
         return (
           <View
-            key={p.id}
-            style={{
-              position: 'absolute',
-              left: p.x * px - size / 2,
-              top: p.y * px - size / 2,
-              width: size,
-              height: size,
-              borderRadius: size / 2,
-              backgroundColor: p.crit ? C.yellow : color,
-            }}
+            key={projectile.id}
+            style={[
+              styles.projectile,
+              {
+                left: projectile.x * px - size / 2,
+                top: projectile.y * px - size / 2,
+                width: size,
+                height: size,
+                borderRadius: size / 2,
+                backgroundColor: projectile.crit ? C.yellow : color,
+                shadowColor: projectile.crit ? C.yellow : color,
+              },
+            ]}
           />
         );
       })}
 
-      {b.fx.map(f => {
-        const prog = f.age / f.dur;
-        if (f.kind === 'text') {
-          if (!damageNumbers && f.color === '#f1f5f9') return null;
+      {b.fx.map(effect => {
+        const progress = effect.age / effect.dur;
+        if (effect.kind === 'text') {
+          if (!damageNumbers && effect.color === '#f1f5f9') return null;
           return (
             <Text
-              key={f.id}
+              key={effect.id}
               style={{
                 position: 'absolute',
-                left: f.x * px - 30,
-                top: (f.y - prog * 0.05) * px,
+                left: effect.x * px - 30,
+                top: (effect.y - progress * 0.05) * px,
                 width: 60,
                 textAlign: 'center',
-                color: f.color,
+                color: effect.color,
                 fontSize: 12,
-                fontWeight: '800',
-                opacity: 1 - prog,
+                fontWeight: '900',
+                opacity: 1 - progress,
+                textShadowColor: '#291b12',
+                textShadowRadius: 2,
               }}>
-              {f.text}
+              {effect.text}
             </Text>
           );
         }
-        if (f.kind === 'ring' || f.kind === 'shock') {
-          const size = f.size * cellPx * (0.4 + prog * 0.9);
+        if (effect.kind === 'ring' || effect.kind === 'shock') {
+          const size = effect.size * cellPx * (0.4 + progress * 0.9);
           return (
             <View
-              key={f.id}
+              key={effect.id}
               pointerEvents="none"
               style={{
                 position: 'absolute',
-                left: f.x * px - size / 2,
-                top: f.y * px - size / 2,
+                left: effect.x * px - size / 2,
+                top: effect.y * px - size / 2,
                 width: size,
                 height: size,
                 borderRadius: size / 2,
-                borderWidth: f.kind === 'shock' ? 3 : 2,
-                borderColor: f.color,
-                opacity: (1 - prog) * 0.9,
+                borderWidth: effect.kind === 'shock' ? 3 : 2,
+                borderColor: effect.color,
+                opacity: (1 - progress) * 0.9,
               }}
             />
           );
         }
-        if (f.kind === 'portal') {
-          const size = f.size * cellPx * (1 - prog * 0.4);
+        if (effect.kind === 'portal') {
+          const size = effect.size * cellPx * (1 - progress * 0.4);
           return (
             <View
-              key={f.id}
+              key={effect.id}
               pointerEvents="none"
               style={{
                 position: 'absolute',
-                left: f.x * px - size / 2,
-                top: f.y * px - size / 2,
+                left: effect.x * px - size / 2,
+                top: effect.y * px - size / 2,
                 width: size,
                 height: size,
                 borderRadius: size / 2,
-                backgroundColor: f.color,
-                opacity: (1 - prog) * 0.45,
+                backgroundColor: effect.color,
+                opacity: (1 - progress) * 0.38,
               }}
             />
           );
         }
-        if (f.kind === 'flash') {
-          const size = f.size * px;
+        if (effect.kind === 'flash') {
+          const size = effect.size * px;
           return (
             <View
-              key={f.id}
+              key={effect.id}
               pointerEvents="none"
               style={{
                 position: 'absolute',
-                left: f.x * px - size / 2,
-                top: f.y * px - size / 2,
+                left: effect.x * px - size / 2,
+                top: effect.y * px - size / 2,
                 width: size,
                 height: size,
                 borderRadius: size / 2,
-                backgroundColor: f.color,
-                opacity: (1 - prog) * 0.6,
+                backgroundColor: effect.color,
+                opacity: (1 - progress) * 0.55,
               }}
             />
           );
         }
-        if (f.kind === 'telegraph' || f.kind === 'orbital') {
-          const size = cellPx * (f.kind === 'orbital' ? 1.6 : 2.2);
+        if (effect.kind === 'telegraph' || effect.kind === 'orbital') {
+          const size = cellPx * (effect.kind === 'orbital' ? 1.6 : 2.2);
           return (
             <View
-              key={f.id}
+              key={effect.id}
               pointerEvents="none"
               style={{
                 position: 'absolute',
-                left: f.x * px - size / 2,
-                top: f.y * px - size / 2,
+                left: effect.x * px - size / 2,
+                top: effect.y * px - size / 2,
                 width: size,
                 height: size,
                 borderRadius: size / 2,
                 borderWidth: 3,
                 borderStyle: 'dashed',
-                borderColor: f.color,
-                opacity: 0.35 + 0.5 * Math.abs(Math.sin(prog * 12)),
+                borderColor: effect.color,
+                opacity: 0.35 + 0.5 * Math.abs(Math.sin(progress * 12)),
               }}
             />
           );
@@ -335,15 +417,15 @@ export function FieldView({ battle, px, reduceMotion, damageNumbers, colorblind,
         return null;
       })}
 
-      {b.grid.map((u, i) => {
-        if (!u) return null;
-        const c = cellCenter(i);
+      {b.grid.map((unit, i) => {
+        if (!unit) return null;
+        const center = cellCenter(i);
         const isDragging = drag?.cell === i;
-        const left = c.x * px - unitPx / 2 + (isDragging ? drag.dx : 0);
-        const top = c.y * px - unitPx / 2 + (isDragging ? drag.dy : 0);
+        const left = center.x * px - unitPx / 2 + (isDragging ? drag.dx : 0);
+        const top = center.y * px - unitPx / 2 + (isDragging ? drag.dy : 0);
 
         return (
-          <GestureDetector key={u.id} gesture={gestures[i]}>
+          <GestureDetector key={unit.id} gesture={gestures[i]}>
             <View
               style={{
                 position: 'absolute',
@@ -351,13 +433,13 @@ export function FieldView({ battle, px, reduceMotion, damageNumbers, colorblind,
                 top,
                 width: unitPx,
                 height: unitPx,
-                zIndex: isDragging ? 20 : 5,
+                zIndex: isDragging ? 30 : 20,
                 opacity: isDragging ? 0.9 : 1,
               }}>
-              <GuardianSprite type={u.type} size={unitPx} rank={u.rank} />
-              {b.time < u.ultActiveUntil && (
-                <View style={[styles.ultRing, { borderColor: GUARDIANS[u.type].glow }]} pointerEvents="none" />
-              )}
+              <GuardianSprite type={unit.type} size={unitPx} rank={unit.rank} />
+              {b.time < unit.ultActiveUntil ? (
+                <View style={[styles.ultRing, { borderColor: GUARDIANS[unit.type].glow }]} pointerEvents="none" />
+              ) : null}
             </View>
           </GestureDetector>
         );
@@ -369,63 +451,139 @@ export function FieldView({ battle, px, reduceMotion, damageNumbers, colorblind,
 const styles = StyleSheet.create({
   field: {
     overflow: 'hidden',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#16213a',
+    borderRadius: 22,
+    borderWidth: 3,
+    borderColor: '#7c6b49',
+    backgroundColor: '#4f713a',
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
   },
-  crack: {
+  environmentWash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#20351c14',
+  },
+  pathStone: {
     position: 'absolute',
-    height: 2,
-    borderRadius: 1,
+    borderRadius: 3,
+    backgroundColor: '#6e553c',
+    opacity: 0.55,
+    transform: [{ rotate: '-12deg' }],
   },
-  portal: {
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: '#8b5cf6',
+  gate: {
     position: 'absolute',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#8b5cf622',
   },
-  portalInner: {
-    width: '55%',
-    height: '45%',
-    borderRadius: 999,
-    backgroundColor: '#8b5cf6',
-    opacity: 0.5,
-  },
-  core: {
+  gateOpening: {
     position: 'absolute',
-    borderRadius: 14,
+    bottom: 0,
+    width: '48%',
+    height: '58%',
+    borderTopLeftRadius: 99,
+    borderTopRightRadius: 99,
+    backgroundColor: '#241d2b',
     borderWidth: 2,
-    backgroundColor: '#0e749022',
+    borderColor: '#9a7cab',
+  },
+  gatePillar: {
+    position: 'absolute',
+    bottom: 0,
+    width: '22%',
+    height: '66%',
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#5d594d',
+    backgroundColor: '#928b72',
+  },
+  gatePillarLeft: { left: '10%' },
+  gatePillarRight: { right: '10%' },
+  gateLintel: {
+    position: 'absolute',
+    top: '12%',
+    width: '82%',
+    height: '24%',
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#5d594d',
+    backgroundColor: '#a19a7e',
+  },
+  heartstone: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+  shrineRoof: {
+    width: '74%',
+    height: '30%',
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    backgroundColor: '#65452d',
+    borderWidth: 2,
+    borderColor: '#3b291e',
+  },
+  shrineBody: {
+    width: '58%',
+    height: '56%',
+    backgroundColor: '#9b8c6b',
+    borderWidth: 2,
+    borderColor: '#5f5846',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  coreOrb: {
+  heartGem: {
     width: '42%',
-    height: '55%',
+    aspectRatio: 1,
     borderRadius: 999,
-    opacity: 0.9,
+    borderWidth: 2,
+    borderColor: '#e8d8a8',
+    shadowColor: '#e8d8a8',
+    shadowOpacity: 0.85,
+    shadowRadius: 9,
   },
   coreShieldText: {
     position: 'absolute',
-    top: -16,
-    color: '#7dd3fc',
-    fontSize: 10,
-    fontWeight: '800',
+    top: -15,
+    color: '#d9f2e8',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
-  cell: {
+  buildPad: {
     position: 'absolute',
-    borderRadius: 10,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1d160e',
+    shadowOpacity: 0.35,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
   },
-  drone: {
+  padRune: {
+    width: '62%',
+    height: '62%',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#c3b48799',
+  },
+  wisp: {
     position: 'absolute',
     width: 14,
     height: 14,
-    borderRadius: 4,
-    transform: [{ rotate: '45deg' }],
-    opacity: 0.9,
+    borderRadius: 7,
+    opacity: 0.95,
+    shadowOpacity: 1,
+    shadowRadius: 7,
+  },
+  projectile: {
+    position: 'absolute',
+    shadowOpacity: 1,
+    shadowRadius: 5,
   },
   ultRing: {
     position: 'absolute',

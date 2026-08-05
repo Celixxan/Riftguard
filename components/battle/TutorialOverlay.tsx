@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { advanceTutorial, BattleState, canMerge } from '@/game/sim/battle';
 import { NeonButton } from '@/components/ui/NeonButton';
-import { C } from '@/theme/colors';
 
 interface Props {
   battle: BattleState;
@@ -19,11 +18,11 @@ function hasMergePair(b: BattleState): boolean {
 }
 
 const STEP_TEXT: Record<number, { title: string; body: string }> = {
-  1: { title: 'SUMMON A GUARDIAN', body: 'Tap the SUMMON button below. It spends energy and deploys a random Guardian from your squad.' },
-  2: { title: 'BUILD A PAIR', body: 'Keep summoning until two matching Guardians of the same rank appear on the grid.' },
-  3: { title: 'MERGE THEM', body: 'Drag one matching Guardian onto the other. Merging creates a stronger, higher-rank unit.' },
-  4: { title: 'ENHANCE', body: 'Your Enhance meter is full. Pick one of the three upgrade cards.' },
-  5: { title: 'DEFEND THE CORE', body: 'Corrupted creatures will pour from the portals above. If they reach your Core, it takes damage. Survive all 10 waves and defeat the Colossus.' },
+  1: { title: 'CALL A WARDEN', body: 'Tap CALL WARDEN below. It spends mana and places one of your Wardens on an open rune pad.' },
+  2: { title: 'FORM A PAIR', body: 'Keep calling until two matching Wardens of the same tier stand beside the trail.' },
+  3: { title: 'MERGE THEIR POWER', body: 'Drag one matching Warden onto the other to create a stronger, higher-tier defender.' },
+  4: { title: 'CHOOSE A BLESSING', body: 'Your Blessing meter is full. Choose one boon from the old forest.' },
+  5: { title: 'GUARD THE HEARTSTONE', body: 'Creatures follow the winding trail toward the Heartstone. Survive all 10 waves and defeat the Hollow Colossus.' },
 };
 
 export function TutorialOverlay({ battle, onDone }: Props) {
@@ -49,7 +48,7 @@ export function TutorialOverlay({ battle, onDone }: Props) {
         <Text style={styles.body}>{text.body}</Text>
         {step === 5 && (
           <NeonButton
-            label="BEGIN DEFENSE"
+            label="OPEN THE TRAIL"
             small
             style={{ marginTop: 10 }}
             onPress={() => {
@@ -69,19 +68,20 @@ const styles = StyleSheet.create({
   top: { top: 90 },
   center: { top: '35%' },
   card: {
-    backgroundColor: '#0b101cf0',
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: C.cyan,
+    backgroundColor: '#efe2bdf5',
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#8b6a3f',
     padding: 14,
     maxWidth: 340,
-    shadowColor: C.cyan,
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
   },
-  step: { color: C.cyan, fontSize: 10, fontWeight: '900', letterSpacing: 2 },
-  title: { color: C.text, fontSize: 16, fontWeight: '900', marginTop: 4, letterSpacing: 1 },
-  body: { color: C.textDim, fontSize: 13, lineHeight: 19, marginTop: 6 },
+  step: { color: '#7a542e', fontSize: 10, fontWeight: '900', letterSpacing: 2 },
+  title: { color: '#302417', fontSize: 16, fontWeight: '900', marginTop: 4, letterSpacing: 1 },
+  body: { color: '#6a573d', fontSize: 13, lineHeight: 19, marginTop: 6 },
   arrowDown: {
     width: 0,
     height: 0,
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 12,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: C.cyan,
+    borderTopColor: '#8b6a3f',
     marginTop: -1,
   },
 });

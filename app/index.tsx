@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { Shield } from 'lucide-react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -13,19 +14,21 @@ import { useMeta } from '@/store/useMeta';
 import { C } from '@/theme/colors';
 import { hapticMedium } from '@/utils/haptics';
 
+const forest = require('../assets/images/battlefield-forest-v1.png');
+
 export default function TitleScreen() {
-  const glow = useSharedValue(0.4);
+  const glow = useSharedValue(0.62);
   const drift = useSharedValue(0);
   const reduceMotion = useMeta(s => s.settings.reduceMotion);
 
   useEffect(() => {
     if (!reduceMotion) {
       glow.value = withRepeat(
-        withSequence(withTiming(1, { duration: 1400 }), withTiming(0.4, { duration: 1400 })),
+        withSequence(withTiming(1, { duration: 1700 }), withTiming(0.62, { duration: 1700 })),
         -1
       );
       drift.value = withRepeat(
-        withSequence(withTiming(-8, { duration: 2600 }), withTiming(8, { duration: 2600 })),
+        withSequence(withTiming(-5, { duration: 2600 }), withTiming(5, { duration: 2600 })),
         -1,
         true
       );
@@ -37,70 +40,85 @@ export default function TitleScreen() {
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Begin Riftguard"
       style={styles.root}
       onPress={() => {
         hapticMedium();
         router.replace('/hub');
       }}>
-      <LinearGradient colors={['#05070d', '#0a1020', '#05070d']} style={StyleSheet.absoluteFill} />
-      {[
-        { top: '18%', left: '10%', rot: '-24deg', color: C.cyan },
-        { top: '32%', left: '55%', rot: '14deg', color: C.violet },
-        { top: '68%', left: '20%', rot: '8deg', color: C.orange },
-        { top: '80%', left: '60%', rot: '-12deg', color: C.crimson },
-      ].map((c, i) => (
-        <Animated.View
-          key={i}
-          style={[
-            styles.crack,
-            glowStyle,
-            { top: c.top as any, left: c.left as any, transform: [{ rotate: c.rot }], backgroundColor: c.color },
-          ]}
-        />
-      ))}
+      <ImageBackground source={forest} resizeMode="cover" style={StyleSheet.absoluteFill} />
+      <LinearGradient
+        colors={['#0b130ad9', '#10180a57', '#0a1009e8']}
+        locations={[0, 0.48, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.frame} pointerEvents="none" />
+
       <Animated.View style={[styles.center, driftStyle]}>
-        <Text style={styles.kicker}>A RIFT WARDEN RISES</Text>
+        <Animated.View style={[styles.crest, glowStyle]}>
+          <Shield color={C.parchment} size={42} strokeWidth={1.6} />
+          <Text style={styles.crestRune}>✦</Text>
+        </Animated.View>
+        <Text style={styles.kicker}>THE WARDEN&apos;S PATH</Text>
         <Text style={styles.title}>RIFTGUARD</Text>
-        <Text style={styles.subtitle}>MERGE SIEGE</Text>
-        <Animated.View style={[styles.orb, glowStyle]} />
+        <View style={styles.dividerRow}>
+          <View style={styles.divider} />
+          <Text style={styles.leaf}>❦</Text>
+          <View style={styles.divider} />
+        </View>
+        <Text style={styles.subtitle}>GUARD THE HEARTSTONE</Text>
       </Animated.View>
-      <Animated.Text style={[styles.tap, glowStyle]}>TAP TO START</Animated.Text>
+
+      <Animated.View style={[styles.tapWrap, glowStyle]}>
+        <Text style={styles.tap}>TAP TO BEGIN</Text>
+        <Text style={styles.tapSub}>A winding road awaits</Text>
+      </Animated.View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
-  crack: { position: 'absolute', width: 140, height: 3, borderRadius: 2 },
-  center: { alignItems: 'center' },
-  kicker: { color: C.violet, fontSize: 12, fontWeight: '800', letterSpacing: 4 },
+  frame: {
+    ...StyleSheet.absoluteFillObject,
+    margin: 14,
+    borderWidth: 1.5,
+    borderColor: '#d3b96d66',
+    borderRadius: 28,
+  },
+  center: { alignItems: 'center', paddingHorizontal: 22 },
+  crest: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 2,
+    borderColor: C.parchmentDark,
+    backgroundColor: '#263b24db',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: C.yellow,
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    marginBottom: 20,
+  },
+  crestRune: { position: 'absolute', color: C.yellow, fontSize: 14 },
+  kicker: { color: C.parchmentDark, fontSize: 11, fontWeight: '900', letterSpacing: 3.8 },
   title: {
-    color: C.text,
-    fontSize: 52,
+    color: C.parchment,
+    fontSize: 48,
     fontWeight: '900',
-    letterSpacing: 6,
+    letterSpacing: 4.5,
     marginTop: 8,
-    textShadowColor: C.cyan,
-    textShadowRadius: 24,
-    textShadowOffset: { width: 0, height: 0 },
+    textShadowColor: '#1a2416',
+    textShadowRadius: 8,
+    textShadowOffset: { width: 0, height: 3 },
   },
-  subtitle: { color: C.cyan, fontSize: 20, fontWeight: '800', letterSpacing: 12, marginTop: 4 },
-  orb: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: C.cyan,
-    marginTop: 40,
-    shadowColor: C.cyan,
-    shadowOpacity: 1,
-    shadowRadius: 30,
-  },
-  tap: {
-    position: 'absolute',
-    bottom: 80,
-    color: C.textDim,
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 4,
-  },
+  dividerRow: { width: 260, flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 },
+  divider: { flex: 1, height: 1, backgroundColor: C.parchmentDark },
+  leaf: { color: C.yellow, fontSize: 18 },
+  subtitle: { color: C.parchment, fontSize: 13, fontWeight: '800', letterSpacing: 3.2, marginTop: 7 },
+  tapWrap: { position: 'absolute', bottom: 70, alignItems: 'center' },
+  tap: { color: C.parchment, fontSize: 14, fontWeight: '900', letterSpacing: 3 },
+  tapSub: { color: C.parchmentDark, fontSize: 11, marginTop: 5, fontStyle: 'italic' },
 });

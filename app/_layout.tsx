@@ -11,7 +11,7 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#05070d' },
+          contentStyle: { backgroundColor: '#101b13' },
         }}>
         <Stack.Screen name="+not-found" />
       </Stack>

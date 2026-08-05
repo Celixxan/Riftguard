@@ -19,12 +19,12 @@ export default function GuardiansScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10} style={styles.back}>
           <ArrowLeft color={C.text} size={22} />
         </Pressable>
-        <Text style={styles.title}>GUARDIANS</Text>
-        <Text style={styles.credits}>{meta.credits} CR</Text>
+        <Text style={styles.title}>WARDENS</Text>
+        <Text style={styles.credits}>{meta.credits} GOLD</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.hint}>
-          Spend Credits to level Guardians up to 10. Each level grants +4% damage in battle.
+          Spend gold to train Wardens up to level 10. Each level grants +4% damage on the trail.
         </Text>
         {GUARDIAN_IDS.map(id => {
           const def = GUARDIANS[id];
@@ -52,7 +52,7 @@ export default function GuardiansScreen() {
                   }}
                   style={[styles.levelBtn, (maxed || !affordable) && { opacity: 0.4 }]}>
                   <Text style={styles.levelBtnText}>{maxed ? 'MAX' : 'LEVEL UP'}</Text>
-                  {!maxed && <Text style={styles.levelBtnCost}>{cost} CR</Text>}
+                  {!maxed && <Text style={styles.levelBtnCost}>{cost} GOLD</Text>}
                 </Pressable>
               </View>
               <View style={styles.stats}>
@@ -116,15 +116,15 @@ const styles = StyleSheet.create({
   levelFill: { height: '100%', borderRadius: 3 },
   level: { color: C.textDim, fontSize: 11, fontWeight: '700', marginTop: 3 },
   levelBtn: {
-    backgroundColor: C.cyan,
+    backgroundColor: C.yellow,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
     alignItems: 'center',
     minWidth: 84,
   },
-  levelBtnText: { color: '#03131a', fontSize: 12, fontWeight: '900' },
-  levelBtnCost: { color: '#075985', fontSize: 10, fontWeight: '800' },
+  levelBtnText: { color: '#302417', fontSize: 12, fontWeight: '900' },
+  levelBtnCost: { color: '#684b28', fontSize: 9, fontWeight: '800' },
   stats: { flexDirection: 'row', gap: 8 },
   stat: {
     flex: 1,

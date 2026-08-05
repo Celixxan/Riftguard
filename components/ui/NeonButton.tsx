@@ -13,9 +13,11 @@ interface Props {
   small?: boolean;
 }
 
-export function NeonButton({ label, sub, onPress, color = C.cyan, disabled, style, small }: Props) {
+export function NeonButton({ label, sub, onPress, color = C.yellow, disabled, style, small }: Props) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
       onPress={() => {
         if (!disabled) {
           hapticLight();
@@ -30,14 +32,14 @@ export function NeonButton({ label, sub, onPress, color = C.cyan, disabled, styl
         style,
       ]}>
       <LinearGradient
-        colors={[disabled ? '#111827' : color + '33', '#0b101c']}
+        colors={disabled ? ['#3f4938', '#2b3529'] : [color, color + 'b8']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={[styles.grad, small && styles.gradSmall]}>
-        <Text style={[styles.label, small && styles.labelSmall, { color: disabled ? C.textFaint : C.text }]}>
+        <Text style={[styles.label, small && styles.labelSmall, { color: disabled ? C.textFaint : '#302417' }]}>
           {label}
         </Text>
-        {sub ? <Text style={[styles.sub, { color: disabled ? C.textFaint : color }]}>{sub}</Text> : null}
+        {sub ? <Text style={[styles.sub, { color: disabled ? C.textFaint : '#5d4227' }]}>{sub}</Text> : null}
       </LinearGradient>
     </Pressable>
   );
@@ -45,9 +47,14 @@ export function NeonButton({ label, sub, onPress, color = C.cyan, disabled, styl
 
 const styles = StyleSheet.create({
   wrap: {
-    borderWidth: 1.5,
-    borderRadius: 14,
+    borderWidth: 2,
+    borderRadius: 16,
+    borderColor: '#f0d477',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.28,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 3 },
   },
   small: { borderRadius: 10 },
   grad: {
@@ -57,7 +64,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gradSmall: { paddingVertical: 8, paddingHorizontal: 12 },
-  label: { fontSize: 16, fontWeight: '700', letterSpacing: 1 },
+  label: { fontSize: 16, fontWeight: '900', letterSpacing: 1.3 },
   labelSmall: { fontSize: 13 },
-  sub: { fontSize: 12, fontWeight: '600', marginTop: 2 },
+  sub: { fontSize: 12, fontWeight: '800', marginTop: 2, color: '#5d4227' },
 });
